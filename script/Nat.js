@@ -11,40 +11,98 @@ function convertToBold(text) {
     'O': '𝗢', 'P': '𝗣', 'Q': '𝗤', 'R': '𝗥', 'S': '𝗦', 'T': '𝗧', 'U': '𝗨',
     'V': '𝗩', 'W': '𝗪', 'X': '𝗫', 'Y': '𝗬', 'Z': '𝗭',
   };
-const axios = require('axios');
+
+  return text.split('').map(char => boldMap[char] || char).join('');
+}
 
 module.exports.config = {
-  name: "nat",
-  version: 1.0,
-  credits: "heru",
-  description: "AI-powered chatbot using GPT-4o",
-  hasPrefix: false,
-  usages: "{pn} [prompt]",
-  aliases: [],
-  cooldown: 0,
-};
-
-module.exports.run = async function ({ api, event, args }) {
-  try {
-    const prompt = args.join(" ");
-    if (!prompt) {
-      await api.sendMessage("🔵 Hey, I'm your Natalie assistant, How can I assist you today?", event.threadID);
-      return;
-    }
-
-    const initialMessage = await new Promise(resolve => {
-      api.sendMessage("Thinking, please wait...", event.threadID, (err, info) => {
-        resolve(info);
-      }, event.messageID);
-    });
-
-    const response = await axios.get(`https://heru-apis.gleeze.com/api/gpt-4o?prompt=${encodeURIComponent(prompt)}`);
-    const answer = response.data.content;
-
-    await api.editMessage("🔘 𝗥𝗘𝗦𝗣𝗢𝗡𝗦𝗘\n" + answer, initialMessage.messageID);
-  } catch (error) {
-    console.error("⚠️", error.message);
-    await api.editMessage("An error occurred while processing your request. Please try again later.", initialMessage.messageID);
+  name: 'ai',
+  version: '1.0.1',
+  hasPermission: 0,
+  usePrefix: false,
+  aliases: ['gpt', 'openai'],
+  description: "An AI command powered by GPT-4o.",
+  usages: "ai [prompt]",
+  credits: 'LorexAi',
+  cooldowns: 3,
+  dependencies: {
+    "axios": ""
   }
 };
-// kayo na bahala dito  
+
+module.exports.run = async function({ api, event, args }) {
+  const input = args.join(' ');
+  const uid = event.senderID;
+
+  const isPhoto = event.type === "message_reply" && event.messageReply.attachments[0]?.type === "photo";
+  
+  if (isPhoto) {
+    const photoUrl = event.messageReply.attachments[0].url;
+
+    if (!input) {
+      return api.sendMessage(
+        "Please provide a prompt along with the image (e.g., 'ai describe this image').",
+        event.threadID,
+        event.messageID
+      );
+    }
+
+    api.sendMessage("🔄 Analyzing image...", event.threadID, event.messageID);
+
+    try {
+      const { data } = await axios.get('https://kaiz-apis.gleeze.com/api/gemini-vision', {
+        params: {
+          q: input,
+          uid: uid,
+          imageUrl: photoUrl
+        }
+      });
+
+      if (data && data.response) {
+        return api.sendMessage(data.response, event.threadID, event.messageID);
+      } else {
+        return api.sendMessage("Unexpected response format from the image analysis API.", event.threadID, event.messageID);
+      }
+    } catch (error) {
+      console.error("Error processing image analysis request:", error.message || error);
+      api.sendMessage("An error occurred while processing the image. Please try again.", event.threadID, event.messageID);
+    }
+
+    return;
+  }
+
+  if (!input) {
+    return api.sendMessage(
+      "Please provide a query or prompt to interact with 𝗟𝗼𝗿𝗲𝘅 𝗔𝗶.",
+      event.threadID,
+      event.messageID
+    );
+  }
+
+  api.sendMessage("🔄 Generating...", event.threadID, event.messageID);
+
+  try {
+    const { data } = await axios.get('https://kaiz-apis.gleeze.com/api/gpt-4o', {
+      params: {
+        ask: input,
+        uid: uid,
+      }
+    });
+
+    if (!data || !data.response) {
+      return api.sendMessage("Sorry, I didn't quite catch that. Could you please try asking again?", event.threadID, event.messageID);
+    }
+
+    const formattedResponse = data.response
+      .replace(/\*\*(.*?)\*\*/g, (_, text) => convertToBold(text))
+      .replace(/##(.*?)##/g, (_, text) => convertToBold(text))
+      .replace(/###\s*/g, '')
+      .replace(/\n{3,}/g, '\n\n');
+
+    return api.sendMessage(formattedResponse, event.threadID, event.messageID);
+
+  } catch (error) {
+    console.error("⛔ Error processing request:", error.message || error);
+    return api.sendMessage("⛔ An error occurred while processing your request. Please try again.", event.threadID, event.messageID);
+  }
+};
