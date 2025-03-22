@@ -73,7 +73,7 @@ module.exports.run = async function({ api, event, args }) {
 
   if (!input) {
     return api.sendMessage(
-      "Please provide a query or prompt to interact with 𝗟𝗼𝗿𝗲𝘅 𝗔𝗶.",
+      "Please provide a query or prompt to interact with 𝗬𝗵𝗮𝗻𝗻𝗮 𝗕𝗼𝘁.",
       event.threadID,
       event.messageID
     );
