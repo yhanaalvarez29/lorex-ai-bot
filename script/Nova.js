@@ -16,12 +16,12 @@ function convertToBold(text) {
 }
 
 module.exports.config = {
-  name: 'ai',
+  name: 'Nova',
   version: '1.0.1',
   hasPermission: 0,
   usePrefix: false,
   aliases: ['gpt', 'openai'],
-  description: "An AI command powered by GPT-4o.",
+  description: "An AI command powered by Llma 4.",
   usages: "ai [prompt]",
   credits: 'LorexAi',
   cooldowns: 3,
@@ -73,13 +73,13 @@ module.exports.run = async function({ api, event, args }) {
 
   if (!input) {
     return api.sendMessage(
-      "Please provide a query or prompt to interact with 𝗬𝗵𝗮𝗻𝗻𝗮 𝗕𝗼𝘁.",
+      "🤖Hi! I'm powered by Nova AI, your friendly Meta AI assistant. Type 'nova' to ask me anything, and I'll do my best to help.",
       event.threadID,
       event.messageID
     );
   }
 
-  api.sendMessage("🔄 Generating...", event.threadID, event.messageID);
+  api.sendMessage("⏳Nova generating your question...", event.threadID, event.messageID);
 
   try {
     const { data } = await axios.get('https://kaiz-apis.gleeze.com/api/gpt-4o', {
