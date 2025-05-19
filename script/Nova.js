@@ -24,7 +24,7 @@ module.exports.run = async function({ api, event, args }) {
 
   if (input === "clear") {
     try {
-      await axios.post('https://gaypt4ai.onrender.com/clear', { id: event.senderID });
+      await axios.post('https://rapido.zetsu.xyz/api/gemini?chat=&imageUrl=/clear', { id: event.senderID });
       return api.sendMessage("Chat history has been cleared.", event.threadID, event.messageID);
     } catch (error) {
       console.error(error);
@@ -44,7 +44,7 @@ module.exports.run = async function({ api, event, args }) {
       ? { link: event.messageReply.attachments[0].url }
       : {};
 
-    const { data } = await axios.post('https://gays-porno-api.onrender.com/chat', {
+    const { data } = await axios.post('https://rapido.zetsu.xyz/api/gemini?chat=&imageUrl=', {
       prompt: input,
       customId: event.senderID,
       ...url
