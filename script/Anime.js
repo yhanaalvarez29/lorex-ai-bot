@@ -30,7 +30,7 @@ module.exports.run = async function({
       const pathPic = __dirname + '/cache/' + `${timestamp}_waifu.png`;
       const {
         data
-      } = await axios.get(`https://api.waifu.pics/${choice}/${category}`);
+      } = await axios.get(`https://rapido.zetsu.xyz/api/anime-photo${choice}/${category}`);
       const picture = data.url;
       const getPicture = (await axios.get(picture, {
         responseType: 'arraybuffer'
