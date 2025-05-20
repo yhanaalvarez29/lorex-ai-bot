@@ -103,3 +103,43 @@
 
 </body>
 </html>
+<?php
+session_start();
+
+// Fake database
+$users_file = "users.json";
+
+// Load users
+if (!file_exists($users_file)) {
+    file_put_contents($users_file, json_encode([]));
+}
+$users = json_decode(file_get_contents($users_file), true);
+
+$username = $_POST['username'];
+$password = $_POST['password'];
+$action = $_POST['action'];
+
+function saveUsers($users, $file) {
+    file_put_contents($file, json_encode($users, JSON_PRETTY_PRINT));
+}
+
+if ($action === 'register') {
+    if (isset($users[$username])) {
+        echo "<script>alert('Username already exists.'); window.history.back();</script>";
+    } else {
+        $users[$username] = password_hash($password, PASSWORD_DEFAULT);
+        saveUsers($users, $users_file);
+        echo "<script>alert('Registration successful! You can login now.'); window.location.href='index.html';</script>";
+    }
+} elseif ($action === 'login') {
+    if (!isset($users[$username])) {
+        echo "<script>alert('User not found. Please register.'); window.history.back();</script>";
+    } elseif (password_verify($password, $users[$username])) {
+        $_SESSION['user'] = $username;
+        echo "<script>alert('Welcome, $username! Login successful.');</script>";
+    } else {
+        echo "<script>alert('Incorrect password.'); window.history.back();</script>";
+    }
+}
+?>
+
